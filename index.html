@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EngineGuardian AI - Intelligent Vehicle Health Monitoring Dashboard">
+    <title>EngineGuardian AI</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ========================================================
+           GLOBAL STYLES & COLOR PALETTE (MATCHING IMAGE)
+        ======================================================== */
+        :root {
+            --bg-dark: #070b14;
+            --sidebar-bg: #0b111e;
+            --panel-bg: #111a2f;
+            --card-bg: #131f37;
+            --input-bg: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #00e676;
+            --accent-blue: #38bdf8;
+            --accent-cyan: #00f2fe;
+            --accent-red: #ff3366;
+            --accent-orange: #fb923c;
+            --transition: all 0.25s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ========================================================
+           LAYOUT & APP CONTAINER
+        ======================================================== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            padding: 1.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: rgba(0, 230, 118, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-green);
+            font-size: 1.4rem;
+        }
+
+        .logo-text h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0.5rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav li a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .sidebar-nav li a::before {
+            content: "•";
+            position: absolute;
+            left: 8px;
+            font-size: 1.2rem;
+            color: transparent;
+            transition: var(--transition);
+        }
+
+        .sidebar-nav li:hover a,
+        .sidebar-nav li.active a {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .sidebar-nav li.active a::before {
+            color: var(--accent-cyan);
+        }
+
+        .sidebar-nav li.active a i {
+            color: var(--accent-cyan);
+        }
+
+        /* System Status Section */
+        .system-status {
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.8rem;
+        }
+
+        .system-status h3 {
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+
+        /* User Panel Bottom */
+        .user-panel {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .user-panel i {
+            font-size: 1.8rem;
+            color: var(--text-muted);
+        }
+
+        .user-details h4 {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .user-details p {
+            font-size: 0.75rem;
+            color: var(--accent-green);
+        }
+
+        /* ========================================================
+           MAIN CONTENT AREA
+        ======================================================== */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 1.5rem 2.5rem;
+            width: calc(100% - 260px);
+        }
+
+        /* Top Header Navbar */
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .page-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .page-title p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Search Box */
+        .search-box {
+            position: relative;
+            width: 280px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: #ffffff;
+            border: none;
+            padding: 8px 12px 8px 34px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #0f172a;
+            outline: none;
+        }
+
+        /* Right Header Controls */
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-button {
+            background: #ffffff;
+            border: none;
+            color: #0f172a;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .icon-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #0f172a;
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffffff;
+        }
+
+        /* Profile Avatar in Header */
+        .profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 10px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .profile-widget:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .profile-avatar {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 1.5rem;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .profile-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .profile-info span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ========================================================
+           SPA VIEW SWITCHER
+        ======================================================== */
+        .app-panel {
+            display: none;
+            animation: fadeIn 0.35s ease forwards;
+        }
+
+        .app-panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========================================================
+           DASHBOARD HEADER & BUTTONS
+        ======================================================== */
+        .dashboard-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .dashboard-header-bar h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .dashboard-header-bar p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-light {
+            background: #ffffff;
+            color: #0f172a;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-light:hover {
+            background: #e2e8f0;
+        }
+
+        /* ========================================================
+           VEHICLE PROFILE CARD (EXACT IMAGE MATCH)
+        ======================================================== */
+        .vehicle-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header .title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header .title i {
+            font-size: 1.3rem;
+            color: var(--text-main);
+        }
+
+        .card-header .title h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .live-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input,
+        .form-group select {
+            background: var(--input-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 14px;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-cyan);
+            background: #233147;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-main);
+            margin-bottom: 1.5rem;
+        }
+
+        .status-indicator i {
+            color: var(--accent-main);
+        }
+
+        .btn-save-profile {
+            width: 100%;
+            background: var(--accent-green);
+            color: #000000;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(0, 230, 118, 0.25);
+        }
+
+        .btn-save-profile:hover {
+            background: #00c865;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 230, 118, 0.35);
+        }
+
+        /* ========================================================
+           AUTH PAGES (LOGIN / REGISTER / PROFILE)
+        ======================================================== */
+        .auth-container {
+            max-width: 480px;
+            margin: 2rem auto;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .auth-form .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Profile Page Styles */
+        .profile-header-card {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar-large {
+            width: 96px;
+            height: 96px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 3rem;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.5);
+        }
+
+        /* Generic Table Formatting */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+
+        /* ========================================================
+           NEW FEATURE: 3D VR EXTERNAL SCANNER STYLES
+        ======================================================== */
+        .vr-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .vr-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Holographic Viewport Screen */
+        .vr-screen {
+            background: radial-gradient(circle at center, #111a30 0%, #05080e 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            position: relative;
+            height: 480px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 40px rgba(0, 242, 254, 0.15);
+        }
+
+        /* HUD Scanner Overlays */
+        .vr-grid-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        .vr-laser-scan {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(180deg, rgba(0, 242, 254, 0), rgba(0, 242, 254, 0.6), rgba(0, 242, 254, 0));
+            top: 0;
+            animation: scanning 4s linear infinite;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        @keyframes scanning {
+            0% {
+                top: 0%;
+            }
+
+            50% {
+                top: 100%;
+            }
+
+            100% {
+                top: 0%;
+            }
+        }
+
+        .vr-compass-hud {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            border-left: 2px solid var(--accent-cyan);
+            padding-left: 8px;
+            line-height: 1.4;
+            pointer-events: none;
+        }
+
+        /* Interactive Blinking Hotspots */
+        .vr-hotspot {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 12px var(--accent-red);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .vr-hotspot.resolved {
+            background: var(--accent-green);
+            box-shadow: 0 0 12px var(--accent-green);
+        }
+
+        .vr-hotspot::after {
+            content: '';
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--accent-red);
+            border-radius: 50%;
+            animation: pulse-hotspot 1.6s infinite;
+            pointer-events: none;
+        }
+
+        .vr-hotspot.resolved::after {
+            border-color: var(--accent-green);
+        }
+
+        @keyframes pulse-hotspot {
+            0% {
+                transform: scale(0.4);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        .vr-hotspot:hover {
+            transform: scale(1.3);
+        }
+
+        /* Active Hotspot UI Highlighting */
+        .vr-hotspot.active {
+            border: 2px solid #ffffff;
+            transform: scale(1.3);
+            background: #ffffff;
+            box-shadow: 0 0 20px #ffffff;
+        }
+
+        .vr-hotspot.active::after {
+            border-color: #ffffff;
+        }
+
+        /* Hotspot Coordinates Mapping */
+        #hotspot-headlight {
+            top: 41%;
+            left: 63%;
+        }
+
+        /* Front View */
+        #hotspot-bumper {
+            top: 62%;
+            left: 34%;
+        }
+
+        /* Front View */
+        #hotspot-mirror {
+            top: 38%;
+            left: 24%;
+        }
+
+        /* Side View */
+        #hotspot-spoiler {
+            top: 31%;
+            left: 36%;
+        }
+
+        /* Rear View */
+
+        /* VR Overlay Dashboard Controls */
+        .vr-viewport-controls {
+            position: absolute;
+            bottom: 15px;
+            display: flex;
+            gap: 10px;
+            background: rgba(11, 17, 30, 0.85);
+            backdrop-filter: blur(8px);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            z-index: 5;
+        }
+
+        .btn-vr-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .btn-vr-control:hover,
+        .btn-vr-control.active {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+        /* Real Car SVG Wireframe Views */
+        .car-svg-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            transition: var(--transition);
+        }
+
+        .car-svg-model {
+            width: 80%;
+            max-width: 440px;
+            height: auto;
+            fill: none;
+            stroke: var(--accent-blue);
+            stroke-width: 1.5;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.3));
+        }
+
+        /* Holographic diagnostics sidebar */
+        .vr-diagnostic-card {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .diagnostic-stat-box {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .diagnostic-stat-box span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .diagnostic-stat-box h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        /* Responsive Design Updates */
+        @media (max-width: 1200px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .logo-text,
+            .sidebar span,
+            .sidebar h3,
+            .user-details,
+            .sidebar-nav li a span {
+                display: none;
+            }
+
+            .main-content {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+                padding: 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-car-side"></i></div>
+                <div class="logo-text">
+                    <h2>EngineGuardian</h2>
+                    <span>AI Dashboard</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul id="mainNav">
+                    <li class="active" data-target="panel-dashboard"><a href="#dashboard"><i
+                                class="fas fa-chart-line"></i><span>Dashboard</span></a></li>
+                    <li data-target="panel-engine"><a href="#engine"><i class="fas fa-cogs"></i><span>Engine
+                                Health</span></a></li>
+                    <li data-target="panel-oil"><a href="#oil"><i class="fas fa-oil-can"></i><span>Oil Health</span></a>
+                    </li>
+                    <li data-target="panel-battery"><a href="#battery"><i
+                                class="fas fa-car-battery"></i><span>Battery</span></a></li>
+                    <li data-target="panel-temperature"><a href="#temperature"><i
+                                class="fas fa-temperature-high"></i><span>Temperature</span></a></li>
+                    <li data-target="panel-gauges"><a href="#gauges"><i class="fas fa-tachometer-alt"></i><span>Live
+                                Gauges</span></a></li>
+
+                    <li data-target="panel-vr"><a href="#vr"><i class="fas fa-vr-cardboard"></i><span>3D VR
+                                View</span></a></li>
+
+                    <li data-target="panel-obd"><a href="#obd"><i class="fas fa-microchip"></i><span>OBD-II</span></a>
+                    </li>
+                    <li data-target="panel-analytics"><a href="#analytics"><i
+                                class="fas fa-chart-pie"></i><span>Analytics</span></a></li>
+                    <li data-target="panel-maintenance"><a href="#maintenance"><i
+                                class="fas fa-tools"></i><span>Maintenance</span></a></li>
+                    <li data-target="panel-settings"><a href="#settings"><i
+                                class="fas fa-gear"></i><span>Settings</span></a></li>
+
+                    <li style="margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 10px;"
+                        data-target="panel-profile"><a href="#profile"><i class="fas fa-user-shield"></i><span>User
+                                Profile</span></a></li>
+                    <li data-target="panel-login"><a href="#login"><i
+                                class="fas fa-sign-in-alt"></i><span>Login</span></a></li>
+                    <li data-target="panel-register"><a href="#register"><i
+                                class="fas fa-user-plus"></i><span>Register</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="system-status">
+                <h3>System Status</h3>
+                <div class="status-item"><span class="status-dot"></span><span>AI Engine</span></div>
+                <div class="status-item"><span class="status-dot"></span><span>OBD Connection</span></div>
+                <div class="status-item"><span class="status-dot"></span><span>Cloud Sync</span></div>
+            </div>
+
+            <div class="user-panel" onclick="switchPanel('panel-profile')">
+                <i class="fas fa-user-circle"></i>
+                <div class="user-details">
+                    <h4 id="sidebarUserName">Vehicle Owner</h4>
+                    <p>Premium Account</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="top-navbar">
+                <div class="navbar-left">
+                    <button class="menu-toggle"><i class="fas fa-bars"></i></button>
+                    <div class="page-title">
+                        <h1>EngineGuardian AI</h1>
+                        <p>Intelligent Vehicle Health Monitoring System</p>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search diagnostics...">
+                </div>
+
+                <div class="navbar-right">
+                    <button class="icon-button"><i class="fas fa-bell"></i><span
+                            class="notification-count">3</span></button>
+                    <button class="icon-button"><i class="fas fa-microphone"></i></button>
+                    <button class="icon-button"><i class="fas fa-moon"></i></button>
+
+                    <div class="profile-widget" onclick="switchPanel('panel-profile')">
+                        <div class="profile-avatar"><i class="fas fa-user"></i></div>
+                        <div class="profile-info">
+                            <h4 id="headerUserName">Vehicle Owner</h4>
+                            <span>Administrator</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div id="panel-dashboard" class="app-panel active-panel">
+                <div class="dashboard-header-bar">
+                    <div>
+                        <h2>Vehicle Health Dashboard</h2>
+                        <p>AI-powered real-time monitoring of engine, oil, battery, sensors, and OBD-II diagnostics.</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-light" onclick="alert('Syncing latest telematics data...')"><i
+                                class="fas fa-sync-alt"></i> Refresh Data</button>
+                        <button class="btn-light" onclick="alert('Downloading Diagnostic Report PDF...')"><i
+                                class="fas fa-download"></i> Download Report</button>
+                    </div>
+                </div>
+
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title">
+                            <i class="fas fa-car"></i>
+                            <h3>Vehicle Profile</h3>
+                        </div>
+                        <span class="live-status">● PROFILE</span>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Owner Name</label>
+                            <input type="text" id="dashOwnerInput" placeholder="Enter owner name" value="Vehicle Owner">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Make</label>
+                            <input type="text" value="Toyota">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle Model</label>
+                            <input type="text" value="Corolla">
+                        </div>
+                        <div class="form-group">
+                            <label>Model Year</label>
+                            <input type="number" value="2024">
+                        </div>
+                        <div class="form-group">
+                            <label>Registration Number</label>
+                            <input type="text" value="AP16 AB 1234">
+                        </div>
+                        <div class="form-group">
+                            <label>VIN</label>
+                            <input type="text" value="17-character VIN">
+                        </div>
+                        <div class="form-group">
+                            <label>Engine Type</label>
+                            <select>
+                                <option selected>Petrol</option>
+                                <option>Diesel</option>
+                                <option>Hybrid</option>
+                                <option>Electric</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Odometer</label>
+                            <input type="number" value="52000">
+                        </div>
+                    </div>
+
+                    <div class="status-indicator">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Excellent</span>
+                    </div>
+
+                    <button class="btn-save-profile" onclick="saveDashProfile()">Save Vehicle Profile</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+                    <div class="vehicle-card" style="margin-bottom: 0;">
+                        <span style="color:var(--text-muted); font-size:0.85rem;">Engine Status</span>
+                        <h2 style="color:var(--accent-green); font-size:1.8rem; margin-top:8px;">Optimal (96%)</h2>
+                    </div>
+                    <div class="vehicle-card" style="margin-bottom: 0;">
+                        <span style="color:var(--text-muted); font-size:0.85rem;">Oil Health Remaining</span>
+                        <h2 style="color:var(--accent-cyan); font-size:1.8rem; margin-top:8px;">88% Life</h2>
+                    </div>
+                    <div class="vehicle-card" style="margin-bottom: 0;">
+                        <span style="color:var(--text-muted); font-size:0.85rem;">Battery Voltage</span>
+                        <h2 style="color:var(--accent-blue); font-size:1.8rem; margin-top:8px;">12.6 V (Good)</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-vr" class="app-panel">
+                <div class="dashboard-header-bar">
+                    <div>
+                        <h2>3D VR External Damage Inspector</h2>
+                        <p>Interactive 360° telemetry scans displaying outer vehicle physical integrity and diagnosed
+                            damage.</p>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn-light" onclick="alert('Running fresh exterior radar sweep...')"><i
+                                class="fas fa-radar"></i> Refresh Scan</button>
+                    </div>
+                </div>
+
+                <div class="vr-container">
+                    <div class="vehicle-card" style="padding: 0; position: relative;">
+                        <div class="vr-screen">
+                            <div class="vr-grid-bg"></div>
+                            <div class="vr-laser-scan"></div>
+
+                            <div class="vr-compass-hud">
+                                CAM_MODE: VR_ORBITAL_360<br>
+                                RADAR: ACTIVE<br>
+                                FPS: 60.00 // LATENCY: 4ms<br>
+                                COMPONENT_SCAN: COMPLETED
+                            </div>
+
+                            <div id="hotspot-headlight" class="vr-hotspot active" onclick="selectHotspot('headlight')">
+                            </div>
+                            <div id="hotspot-bumper" class="vr-hotspot" onclick="selectHotspot('bumper')"></div>
+                            <div id="hotspot-mirror" class="vr-hotspot" style="display: none;"
+                                onclick="selectHotspot('mirror')"></div>
+                            <div id="hotspot-spoiler" class="vr-hotspot" style="display: none;"
+                                onclick="selectHotspot('spoiler')"></div>
+
+                            <div class="car-svg-container" id="carSvgViewport">
+                                <svg id="svg-front" class="car-svg-model" viewBox="0 0 200 100">
+                                    <path d="M 50,25 L 150,25 L 135,5 L 65,5 Z" stroke="#38bdf8" />
+                                    <rect x="45" y="25" width="110" height="25" rx="5" />
+                                    <rect x="75" y="32" width="50" height="12" rx="2" stroke-dasharray="2,2" />
+                                    <polygon points="48,27 65,27 62,38 48,34" />
+                                    <polygon points="152,27 135,27 138,38 152,34" style="stroke: #ff3366;" />
+                                    <line x1="140" y1="29" x2="148" y2="36" style="stroke: #ff3366; stroke-width: 1;" />
+                                    <line x1="148" y1="29" x2="142" y2="35" style="stroke: #ff3366; stroke-width: 1;" />
+                                    <rect x="35" y="50" width="130" height="15" rx="4" />
+                                    <path d="M 38,55 Q 48,58 52,52" style="stroke: #ff3366; stroke-width: 1.5;" />
+                                    <circle cx="50" cy="72" r="10" />
+                                    <circle cx="150" cy="72" r="10" />
+                                </svg>
+                            </div>
+
+                            <div class="vr-viewport-controls">
+                                <button class="btn-vr-control active" id="btn-front" onclick="switchVrView('front')"><i
+                                        class="fas fa-street-view"></i> Front View</button>
+                                <button class="btn-vr-control" id="btn-side" onclick="switchVrView('side')"><i
+                                        class="fas fa-car"></i> Side View</button>
+                                <button class="btn-vr-control" id="btn-rear" onclick="switchVrView('rear')"><i
+                                        class="fas fa-undo"></i> Rear View</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vr-diagnostic-card">
+                        <div class="vehicle-card" style="margin-bottom: 0; flex: 1;">
+                            <div class="card-header">
+                                <div class="title">
+                                    <i class="fas fa-satellite-dish" style="color: var(--accent-cyan);"></i>
+                                    <h3>Diagnostic Feed</h3>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-stat-box"
+                                style="border-left: 3px solid var(--accent-red); margin-bottom: 12px;">
+                                <span>Component Inspected</span>
+                                <h4 id="diag-part">Right LED Headlight Assembly</h4>
+                            </div>
+
+                            <div class="diagnostic-stat-box"
+                                style="border-left: 3px solid var(--accent-red); margin-bottom: 12px;">
+                                <span>External Integrity Defect</span>
+                                <h4 id="diag-defect" style="color: var(--accent-red);">CRACKED OUTER LENS</h4>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                                <div class="diagnostic-stat-box">
+                                    <span>AI Severity</span>
+                                    <h5 id="diag-severity"
+                                        style="color: var(--accent-orange); font-size: 0.95rem; font-weight:700; margin-top:4px;">
+                                        Medium</h5>
+                                </div>
+                                <div class="diagnostic-stat-box">
+                                    <span>Est. Repair</span>
+                                    <h5 id="diag-cost"
+                                        style="color: var(--text-main); font-size: 0.95rem; font-weight:700; margin-top:4px;">
+                                        $480.00</h5>
+                                </div>
+                            </div>
+
+                            <div class="diagnostic-stat-box"
+                                style="background: rgba(255,255,255,0.02); line-height: 1.5;">
+                                <span style="display: block; margin-bottom: 4px;">AI Damage Mitigation Report</span>
+                                <p id="diag-desc" style="font-size: 0.82rem; color: var(--text-muted);">The right-hand
+                                    side high-beam headlight cover glass shows a starburst fracture. Moisture build-up
+                                    has begun. If left unreplaced, water logging will short-circuit internal CAN bus
+                                    electrical lines.</p>
+                            </div>
+
+                            <button id="repair-button" class="btn-save-profile"
+                                style="margin-top: 15px; background: var(--accent-red); color: white; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.25);"
+                                onclick="resolveDamage()">
+                                <i class="fas fa-wrench"></i> Order Replacement Parts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-login" class="app-panel">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to your EngineGuardian AI Account</p>
+                    </div>
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" placeholder="owner@engineguardian.ai" id="loginEmail">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="••••••••••••">
+                        </div>
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                <input type="checkbox"> Remember me
+                            </label>
+                            <a href="#" style="color: var(--accent-cyan); text-decoration: none;">Forgot Password?</a>
+                        </div>
+                        <button class="btn-save-profile" onclick="handleAuth('Login Successful!')">Sign In</button>
+                    </div>
+                    <div class="auth-footer">
+                        Don't have an account? <a onclick="switchPanel('panel-register')">Register Now</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-register" class="app-panel">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <h2>Create Account</h2>
+                        <p>Connect your vehicle to AI Telematics</p>
+                    </div>
+                    <div class="auth-form">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" placeholder="John Doe" id="regName">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Vehicle VIN (Optional)</label>
+                            <input type="text" placeholder="17-character VIN">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" placeholder="Create strong password">
+                        </div>
+                        <button class="btn-save-profile" style="margin-top: 10px;"
+                            onclick="handleAuth('Account Created Successfully!')">Create Account</button>
+                    </div>
+                    <div class="auth-footer">
+                        Already registered? <a onclick="switchPanel('panel-login')">Sign In</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-profile" class="app-panel">
+                <div class="dashboard-header-bar">
+                    <div>
+                        <h2>User Account Profile</h2>
+                        <p>Manage your personal credentials, linked vehicles, and subscription level.</p>
+                    </div>
+                </div>
+
+                <div class="profile-header-card">
+                    <div class="profile-avatar-large"><i class="fas fa-user"></i></div>
+                    <div>
+                        <h2 id="profilePageName" style="font-size: 1.5rem; font-weight: 700;">Vehicle Owner</h2>
+                        <p style="color: var(--accent-cyan); font-weight: 600; margin-top: 4px;">● Premium AI Subscriber
+                        </p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Member since January
+                            2024 • ID: ENG-88219</p>
+                    </div>
+                </div>
+
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-user-edit"></i>
+                            <h3>Personal Details</h3>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Display Name</label><input type="text" value="Vehicle Owner">
+                        </div>
+                        <div class="form-group"><label>Email Address</label><input type="email"
+                                value="owner@engineguardian.ai"></div>
+                        <div class="form-group"><label>Phone Number</label><input type="tel" value="+1 (555) 019-2834">
+                        </div>
+                        <div class="form-group"><label>Emergency Contact</label><input type="text"
+                                value="Jane Doe (+1 555-019-2835)"></div>
+                    </div>
+                    <button class="btn-save-profile" style="max-width: 250px;"
+                        onclick="alert('Profile changes updated!')">Update Credentials</button>
+                </div>
+
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-shield-alt"></i>
+                            <h3>Connected Garage Vehicles</h3>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vehicle Make/Model</th>
+                                <th>Registration</th>
+                                <th>AI Diagnostic Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>2024 Toyota Corolla</strong></td>
+                                <td>AP16 AB 1234</td>
+                                <td style="color:var(--accent-green)">● Active Monitoring</td>
+                                <td><a href="#" style="color:var(--accent-cyan)">Configure</a></td>
+                            </tr>
+                            <tr>
+                                <td><strong>2022 Honda City ZX</strong></td>
+                                <td>KA04 EQ 9981</td>
+                                <td style="color:var(--text-muted)">○ Standby</td>
+                                <td><a href="#" style="color:var(--accent-cyan)">Configure</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-engine" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-cogs"></i>
+                            <h3>Engine Combustion & Cylinder Diagnostics</h3>
+                        </div>
+                    </div>
+                    <p>AI Engine Integrity Evaluation: <strong style="color:var(--accent-green)">96% Optimal</strong>.
+                    </p>
+                    <table style="margin-top: 1.5rem;">
+                        <thead>
+                            <tr>
+                                <th>Monitored Parameter</th>
+                                <th>Live Reading</th>
+                                <th>AI Health Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Cylinder 1-4 Compression Balance</td>
+                                <td>175 PSI Avg</td>
+                                <td style="color:var(--accent-green)">Synchronized</td>
+                            </tr>
+                            <tr>
+                                <td>Spark Ignition Timing Match</td>
+                                <td>14° BTDC</td>
+                                <td style="color:var(--accent-green)">Optimal</td>
+                            </tr>
+                            <tr>
+                                <td>Throttle Valve Alignment</td>
+                                <td>18% Open</td>
+                                <td style="color:var(--accent-green)">Calibrated</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-oil" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-oil-can"></i>
+                            <h3>Engine Oil Degradation Analysis</h3>
+                        </div>
+                    </div>
+                    <h1 style="font-size: 3rem; color: var(--accent-cyan); margin: 1rem 0;">88%</h1>
+                    <p>Oil viscosity and thermal breakdown metrics are within safe operational limits. Next service
+                        recommended in <strong>4,200 km</strong>.</p>
+                </div>
+            </div>
+
+            <div id="panel-battery" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-car-battery"></i>
+                            <h3>Electrical & Alternator Status</h3>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Voltage Reading</th>
+                                <th>Condition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Battery Resting State</td>
+                                <td>12.6 V</td>
+                                <td style="color:var(--accent-green)">Healthy</td>
+                            </tr>
+                            <tr>
+                                <td>Alternator Charging Output</td>
+                                <td>14.1 V</td>
+                                <td style="color:var(--accent-green)">Active Load Normal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-temperature" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-temperature-high"></i>
+                            <h3>Coolant & Thermal Management</h3>
+                        </div>
+                    </div>
+                    <h1 style="font-size: 3rem; color: var(--accent-red); margin: 1rem 0;">92°C</h1>
+                    <p>Coolant system flow is normal. Radiator high-speed fan state: <strong
+                            style="color:var(--accent-green)">ACTIVE</strong>.</p>
+                </div>
+            </div>
+
+            <div id="panel-gauges" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-tachometer-alt"></i>
+                            <h3>Real-Time Telemetry Gauges</h3>
+                        </div>
+                    </div>
+                    <div
+                        style="display: flex; gap: 2rem; justify-content: space-around; padding: 2rem 0; text-align: center;">
+                        <div>
+                            <h1 style="font-size: 2.5rem; color:var(--accent-cyan);">850</h1>
+                            <p style="color:var(--text-muted)">Engine RPM</p>
+                        </div>
+                        <div>
+                            <h1 style="font-size: 2.5rem; color:var(--accent-green);">0 <small
+                                    style="font-size:1rem;">km/h</small></h1>
+                            <p style="color:var(--text-muted)">Vehicle Speed</p>
+                        </div>
+                        <div>
+                            <h1 style="font-size: 2.5rem; color:var(--accent-blue);">26%</h1>
+                            <p style="color:var(--text-muted)">Engine Load</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-obd" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-microchip"></i>
+                            <h3>OBD-II Live ECU Registers</h3>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PID Code</th>
+                                <th>Parameter Description</th>
+                                <th>Current Value</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>0x0C</code></td>
+                                <td>Engine RPM Matrix</td>
+                                <td>850 RPM</td>
+                                <td style="color:var(--accent-green)">OK</td>
+                            </tr>
+                            <tr>
+                                <td><code>0x10</code></td>
+                                <td>Mass Air Flow Sensor (MAF)</td>
+                                <td>8.4 g/s</td>
+                                <td style="color:var(--accent-green)">OK</td>
+                            </tr>
+                            <tr>
+                                <td><code>0x0B</code></td>
+                                <td>Intake Manifold Pressure</td>
+                                <td>101 kPa</td>
+                                <td style="color:var(--accent-green)">OK</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-analytics" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-chart-line"></i>
+                            <h3>AI Historical Telemetry Analytics</h3>
+                        </div>
+                    </div>
+                    <div style="height: 350px; position: relative;"><canvas id="analyticsChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="panel-maintenance" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-tools"></i>
+                            <h3>Service Scheduler</h3>
+                        </div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:1.5rem; margin-top:1rem;">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                <h4>Engine Oil Fluid Swap</h4><span>12 Days Remaining</span>
+                            </div>
+                            <div style="width:100%; background:rgba(255,255,255,0.1); height:8px; border-radius:4px;">
+                                <div style="width:80%; background:var(--accent-green); height:100%; border-radius:4px;">
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                <h4>Cabin Air Filter Element</h4><span>25 Days Remaining</span>
+                            </div>
+                            <div style="width:100%; background:rgba(255,255,255,0.1); height:8px; border-radius:4px;">
+                                <div style="width:60%; background:var(--accent-cyan); height:100%; border-radius:4px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-settings" class="app-panel">
+                <div class="vehicle-card">
+                    <div class="card-header">
+                        <div class="title"><i class="fas fa-gear"></i>
+                            <h3>System Settings</h3>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Interface Color Mode</label><select>
+                                <option>Dark Blue Telemetry (Default)</option>
+                                <option>High Contrast Night</option>
+                            </select></div>
+                        <div class="form-group"><label>Telemetry Units</label><select>
+                                <option>Metric (km, °C, PSI)</option>
+                                <option>Imperial (miles, °F, PSI)</option>
+                            </select></div>
+                    </div>
+                    <button class="btn-save-profile" style="max-width:200px;" onclick="alert('Settings Applied')">Save
+                        Preferences</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Global Navigation Switcher Function
+        function switchPanel(targetPanelId) {
+            // Clear active classes from sidebar links
+            document.querySelectorAll("#mainNav li").forEach(item => {
+                item.classList.remove("active");
+                if (item.getAttribute("data-target") === targetPanelId) {
+                    item.classList.add("active");
+                }
+            });
+
+            // Hide all panels and display targeted view
+            document.querySelectorAll(".app-panel").forEach(panel => {
+                panel.classList.remove("active-panel");
+            });
+
+            const activePanel = document.getElementById(targetPanelId);
+            if (activePanel) {
+                activePanel.classList.add("active-panel");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Attach Event Listeners to Sidebar Navigation
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll("#mainNav li").forEach(item => {
+                item.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const target = this.getAttribute("data-target");
+                    if (target) switchPanel(target);
+                });
+            });
+
+            // Initialize Chart.js Analytics
+            const canvas = document.getElementById('analyticsChart');
+            if (canvas) {
+                new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'AI Combustion Efficiency (%)',
+                            data: [93, 95, 94, 96, 95, 96],
+                            borderColor: '#00e676',
+                            backgroundColor: 'rgba(0, 230, 118, 0.08)',
+                            borderWidth: 3,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { labels: { color: '#f8fafc', font: { family: 'Poppins' } } } },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' }, min: 80, max: 100 }
+                        }
+                    }
+                });
+            }
+        });
+
+        // Profile Save Simulation
+        function saveDashProfile() {
+            const name = document.getElementById('dashOwnerInput').value || "Vehicle Owner";
+            document.getElementById('sidebarUserName').innerText = name;
+            document.getElementById('headerUserName').innerText = name;
+            document.getElementById('profilePageName').innerText = name;
+            alert("Vehicle Profile Saved Successfully!");
+        }
+
+        // Authentication Form Simulation
+        function handleAuth(message) {
+            const regName = document.getElementById('regName')?.value;
+            if (regName) {
+                document.getElementById('sidebarUserName').innerText = regName;
+                document.getElementById('headerUserName').innerText = regName;
+                document.getElementById('profilePageName').innerText = regName;
+            }
+            alert(message);
+            switchPanel('panel-dashboard');
+        }
+
+        /* ========================================================
+           NEW LOGIC: 3D VR SCANNER CONTROLLER & HOTSPOTS
+        ======================================================== */
+
+        // Dynamic Dataset mapping external vehicle outer-body damages
+        const damageData = {
+            headlight: {
+                title: "Right Headlight Assembly",
+                defect: "CRACKED OUTER LENS",
+                severity: "Medium (Risk of water short-circuit)",
+                cost: "$480.00",
+                desc: "The right-side LED outer cover glass shows starburst cracks. Moisture accumulation is actively detected. Recommend replacing physical casing soon.",
+                resolved: false
+            },
+            bumper: {
+                title: "Lower Front Bumper Panel",
+                defect: "DEEP SCRAPE / SURFACE DENT",
+                severity: "Low (Cosmetic Paint Damage)",
+                cost: "$280.00",
+                desc: "Scuffing on the bottom-left bumper apron has sheared off primer paint, exposing plastic sub-brackets. No structural chassis framework damage detected.",
+                resolved: false
+            },
+            mirror: {
+                title: "Driver Side Wing Mirror Shell",
+                defect: "FRACTURED CASING & SHATTERED GLASS",
+                severity: "High (Restricted Visibility)",
+                cost: "$195.00",
+                desc: "Outer plastic casing has fractured from an side-impact brush. Blind-spot warning wire sensors remain intact, but mirror reflector requires replacement.",
+                resolved: false
+            },
+            spoiler: {
+                title: "Rear Spoiler & Tailgate Trim",
+                defect: "AERODYNAMIC TRIM DEVIATION",
+                severity: "Low (Partially Loose Clip)",
+                cost: "$120.00",
+                desc: "Right edge of rear lip spoiler shows 3.5mm vertical deviation. Fastening clip is loose. Requires realignment to preserve high-speed wind stability.",
+                resolved: false
+            }
+        };
+
+        // Current UI state tracking
+        let currentView = 'front';
+        let currentHotspotId = 'headlight';
+
+        // Switch orbital VR views
+        function switchVrView(view) {
+            currentView = view;
+
+            // Toggle controller active CSS classes
+            document.querySelectorAll('.btn-vr-control').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${view}`).classList.add('active');
+
+            const viewport = document.getElementById('carSvgViewport');
+
+            // Clear current hotspots from screen
+            document.getElementById('hotspot-headlight').style.display = 'none';
+            document.getElementById('hotspot-bumper').style.display = 'none';
+            document.getElementById('hotspot-mirror').style.display = 'none';
+            document.getElementById('hotspot-spoiler').style.display = 'none';
+
+            // Swap vector models & expose matching hotspots
+            if (view === 'front') {
+                viewport.innerHTML = `
+                    <svg id="svg-front" class="car-svg-model" viewBox="0 0 200 100">
+                        <path d="M 50,25 L 150,25 L 135,5 L 65,5 Z" stroke="#38bdf8" />
+                        <rect x="45" y="25" width="110" height="25" rx="5" />
+                        <rect x="75" y="32" width="50" height="12" rx="2" stroke-dasharray="2,2" />
+                        <polygon points="48,27 65,27 62,38 48,34" />
+                        <polygon points="152,27 135,27 138,38 152,34" style="stroke: #ff3366;" />
+                        <line x1="140" y1="29" x2="148" y2="36" style="stroke: #ff3366; stroke-width: 1;" />
+                        <line x1="148" y1="29" x2="142" y2="35" style="stroke: #ff3366; stroke-width: 1;" />
+                        <rect x="35" y="50" width="130" height="15" rx="4" />
+                        <path d="M 38,55 Q 48,58 52,52" style="stroke: #ff3366; stroke-width: 1.5;" />
+                        <circle cx="50" cy="72" r="10" />
+                        <circle cx="150" cy="72" r="10" />
+                    </svg>
+                `;
+                document.getElementById('hotspot-headlight').style.display = 'flex';
+                document.getElementById('hotspot-bumper').style.display = 'flex';
+                selectHotspot('headlight');
+            } else if (view === 'side') {
+                viewport.innerHTML = `
+                    <svg id="svg-side" class="car-svg-model" viewBox="0 0 200 100">
+                        <path d="M 15,60 L 25,45 L 60,40 L 80,18 L 135,18 L 165,40 L 185,45 L 190,60 Z" />
+                        <circle cx="45" cy="65" r="14" />
+                        <circle cx="145" cy="65" r="14" />
+                        <polygon points="74,38 68,36 67,41" style="stroke: #ff3366; stroke-width: 1.2;" />
+                        <line x1="68" y1="36" x2="62" y2="39" style="stroke: #ff3366;" />
+                    </svg>
+                `;
+                document.getElementById('hotspot-mirror').style.display = 'flex';
+                selectHotspot('mirror');
+            } else if (view === 'rear') {
+                viewport.innerHTML = `
+                    <svg id="svg-rear" class="car-svg-model" viewBox="0 0 200 100">
+                        <path d="M 50,22 L 150,22 L 138,5 L 62,5 Z" />
+                        <rect x="38" y="22" width="124" height="28" rx="4" />
+                        <polygon points="38,28 55,28 53,35 38,35" />
+                        <polygon points="162,28 145,28 147,35 162,35" />
+                        <path d="M 38,20 Q 100,18 162,20" style="stroke: #ff3366; stroke-width: 1.5;" />
+                        <circle cx="55" cy="65" r="11" />
+                        <circle cx="145" cy="65" r="11" />
+                    </svg>
+                `;
+                document.getElementById('hotspot-spoiler').style.display = 'flex';
+                selectHotspot('spoiler');
+            }
+        }
+
+        // Highlight selected outer damage item and populate UI telemetry
+        function selectHotspot(hotspotId) {
+            currentHotspotId = hotspotId;
+
+            // Highlight target hotspot element
+            document.querySelectorAll('.vr-hotspot').forEach(h => h.classList.remove('active'));
+            const selectedElem = document.getElementById(`hotspot-${hotspotId}`);
+            if (selectedElem) selectedElem.classList.add('active');
+
+            // Render text dynamically from dataset
+            const data = damageData[hotspotId];
+            document.getElementById('diag-part').innerText = data.title;
+            document.getElementById('diag-defect').innerText = data.defect;
+            document.getElementById('diag-severity').innerText = data.severity;
+            document.getElementById('diag-cost').innerText = data.cost;
+            document.getElementById('diag-desc').innerText = data.desc;
+
+            const repBtn = document.getElementById('repair-button');
+            if (data.resolved) {
+                document.getElementById('diag-defect').style.color = 'var(--accent-green)';
+                repBtn.innerHTML = `<i class="fas fa-check-circle"></i> Order Placed & Scheduled`;
+                repBtn.style.background = 'var(--accent-green)';
+                repBtn.disabled = true;
+            } else {
+                document.getElementById('diag-defect').style.color = 'var(--accent-red)';
+                repBtn.innerHTML = `<i class="fas fa-wrench"></i> Order Replacement Parts`;
+                repBtn.style.background = 'var(--accent-red)';
+                repBtn.disabled = false;
+            }
+        }
+
+        // Simulates clicking "Order Replacement Parts"
+        function resolveDamage() {
+            const data = damageData[currentHotspotId];
+            data.resolved = true;
+
+            // Color hotspot green to show scheduled resolution
+            const activeHotspot = document.getElementById(`hotspot-${currentHotspotId}`);
+            if (activeHotspot) activeHotspot.classList.add('resolved');
+
+            // Re-select hotspot to refresh DOM elements
+            selectHotspot(currentHotspotId);
+
+            alert(`AI Order Dispatched! Genuine replacement parts for [${data.title}] have been requested. Our system has scheduled a delivery to your registered local garage. Cost: ${data.cost}`);
+        }
+    </script>
+</body>
+
+</html>
